@@ -458,19 +458,66 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 		
 				$xml = simplexml_load_file($file_path);
 
-				$result = $xml->xpath("//action");
+				$result = $xml->xpath('//action[@method="addJs"]');
 
 				foreach ($result as $node) {
 
-					if (isset($node->path)) {
-						$design_files[$design_folder]['path'][] = (string)$node->path;
+					if (isset($node->file)) {
+						$design_files[$design_folder]['js'][] = (string)$node->file;
+					}
+
+					if (isset($node->script)) {
+						$design_files[$design_folder]['js'][] = (string)$node->script;
 					}
 
 					if (isset($node->name)) {
-						$design_files[$design_folder]['name'][] = (string)$node->name;
+						$design_files[$design_folder]['js'][] = (string)$node->name;
+					}
+
+					// edge case here
+					// magento allows you to use any 
+					// node convention you want. most people use
+					// <script>filename.js</script>
+					// or <file>filename.js</file>
+					// but you could really use <anything>filename.js</anything>
+
+				}
+
+				$result = $xml->xpath('//action[@method="addCss"]');
+
+				foreach ($result as $node) {
+
+					if (isset($node->stylesheet)) {
+						$design_files[$design_folder]['skin_css'][] = (string)$node->stylesheet;
+					}
+
+					if (isset($node->name)) {
+						$design_files[$design_folder]['skin_css'][] = (string)$node->name;
 					}
 
 				}
+
+				$result = $xml->xpath('//action[@method="addItem"]');
+
+				// @todo: addItem can use a helper method function to find
+				// path to file:
+				// i.e.: <name helper="tegdesign_emailcollector/data/getCSSFilename" />
+
+				foreach ($result as $node) {
+
+					if (isset($node->type)) {
+						if (isset($node->name)) {
+							$design_files[$design_folder][(string)$node->type][] = (string)$node->name;
+						}
+						if (isset($node->script)) {
+							$design_files[$design_folder][(string)$node->type][] = (string)$node->script;
+						}
+					}
+
+				}
+
+
+				// @todo: also need a way to get <block template="somefile.phtml"
 
 			}
 
@@ -535,10 +582,12 @@ foreach ($setTemplate_phtml_files as $file_location => $file_paths) {
 	}
 }
 
-// look through the skin files
-if (isset($design_files['frontend']['name'])) {
+/* 
+skin_css: relative to skin directory of your theme.
+*/
+if (isset($design_files['frontend']['skin_css'])) {
 
-	foreach ($design_files['frontend']['name'] as $f) {
+	foreach ($design_files['frontend']['skin_css'] as $f) {
 
 		foreach ($layout_roots as $root_folder) {
 
@@ -554,10 +603,12 @@ if (isset($design_files['frontend']['name'])) {
 
 }
 
-// look through the skin files
-if (isset($design_files['adminhtml']['name'])) {
+/* 
+skin_css: relative to skin directory of your theme.
+*/
+if (isset($design_files['adminhtml']['skin_css'])) {
 
-	foreach ($design_files['adminhtml']['name'] as $f) {
+	foreach ($design_files['adminhtml']['skin_css'] as $f) {
 
 		foreach ($layout_roots as $root_folder) {
 
@@ -569,6 +620,113 @@ if (isset($design_files['adminhtml']['name'])) {
 
 		}
 
+	}
+
+}
+
+/*
+skin_js: relative to skin/js directory of your theme.
+*/
+if (isset($design_files['frontend']['skin_js'])) {
+
+	foreach ($design_files['frontend']['skin_js'] as $f) {
+
+		foreach ($layout_roots as $root_folder) {
+
+			$fp = $magento_dir . '/skin/frontend' . $root_folder . $f;
+			if (file_exists($fp)) {
+				// if the file exists lets add it to our array
+				$extension_files[] = $fp;
+			}
+
+		}
+
+	}
+
+}
+
+/*
+skin_js: relative to skin/js directory of your theme.
+*/
+if (isset($design_files['adminhtml']['skin_js'])) {
+
+	foreach ($design_files['adminhtml']['skin_js'] as $f) {
+
+		foreach ($layout_roots as $root_folder) {
+
+			$fp = $magento_dir . '/skin/adminhtml' . $root_folder . $f;
+
+			if (file_exists($fp)) {
+				// if the file exists lets add it to our array
+				$extension_files[] = $fp;
+			}
+
+		}
+
+	}
+
+}
+
+/*
+js: relative to /js directory of your Magento installation.
+*/
+if (isset($design_files['frontend']['js'])) {
+
+	foreach ($design_files['frontend']['js'] as $f) {
+
+		$fp = $magento_dir . '/js/' . $f;
+		if (file_exists($fp)) {
+			// if the file exists lets add it to our array
+			$extension_files[] = $fp;
+		}
+	}
+
+}
+
+/*
+js: relative to /js directory of your Magento installation.
+*/
+if (isset($design_files['adminhtml']['js'])) {
+
+	foreach ($design_files['adminhtml']['js'] as $f) {
+
+		$fp = $magento_dir . '/js/' . $f;
+		if (file_exists($fp)) {
+			// if the file exists lets add it to our array
+			$extension_files[] = $fp;
+		}
+	}
+
+}
+
+/*
+js_css: css relative to the /js directory
+*/
+if (isset($design_files['frontend']['js_css'])) {
+
+	foreach ($design_files['frontend']['js_css'] as $f) {
+
+		$fp = $magento_dir . '/js/' . $f;
+		if (file_exists($fp)) {
+			// if the file exists lets add it to our array
+			$extension_files[] = $fp;
+		}
+	}
+
+}
+
+/*
+js_css: css relative to the /js directory
+*/
+if (isset($design_files['adminhtml']['js_css'])) {
+
+	foreach ($design_files['adminhtml']['js_css'] as $f) {
+
+		$fp = $magento_dir . '/js/' . $f;
+		if (file_exists($fp)) {
+			// if the file exists lets add it to our array
+			$extension_files[] = $fp;
+		}
 	}
 
 }
@@ -594,7 +752,133 @@ foreach ($xml_updates['translate'] as $layout_node => $csv_files) {
 			$f = $magento_dir . '/' . $f;
 			if (file_exists($f)) {
 				// if the file exists lets add it to our array
-				$extension_files[] = $magento_dir . '/' . $f;
+				$extension_files[] = $f;
+			}
+		}
+
+	}
+
+}
+
+
+// get a array of all the PHP files involved in the extension
+$extension_php_files = array();
+$extension_php_files = iterateFileSystem(
+	array(
+		'base_dir' => $extension_base_dir
+	),
+	'/^.+\.php$/i'
+);
+
+// echo 'extension_php_files: ' . PHP_EOL;
+// echo '<pre>';
+// print_r($extension_php_files);
+// echo '</pre>';
+
+
+// look php files for references to /lib files
+$new_class_declarations = array();
+foreach ($extension_php_files as $f) {
+
+	$handle = fopen($f, 'r');
+	if ($handle) {
+
+	    while (($line = fgets($handle)) !== false) {
+
+	       	$tmp = get_string_between($line, 'new ', ');');
+
+	       	// do we have something and is the first character capitalized like a class instance
+	       	if (!empty($tmp) && preg_match('/[A-Z]/', $tmp[0])) {
+
+	       		$tmp = 'new ' . $tmp;
+
+	       		// what reserved classes we looking to skip
+				if (0 !== strpos($tmp, 'new Mage') &&
+					0 !== strpos($tmp, 'new Enterprise') &&
+					0 !== strpos($tmp, 'new Exception') &&
+					0 !== strpos($tmp, 'new Zend')  &&
+					0 !== strpos($tmp, 'new Varien')
+				) {
+
+					$tmp = get_string_between($tmp, 'new ', '(');
+					if (!empty($tmp)) {
+	       				$new_class_declarations[] = $tmp;
+	       			}
+				}
+
+	       	}
+
+	    }
+	}
+	fclose($handle);
+
+}
+
+// echo PHP_EOL;
+// echo 'new_class_declarations' . PHP_EOL;
+// echo '<pre>';
+// print_r($new_class_declarations);
+// echo '</pre>';
+
+
+$lib_classes = array();
+foreach ($new_class_declarations as $c) {
+
+	// skip if a space is found
+	if (preg_match('/\s/',$c)) {
+		continue;
+ 	}
+
+	if (strpos($c,'_') !== false) {
+
+		// explode out on _ to find folder names
+		$tmp = explode('_', $c);
+
+		$look_path = $magento_dir . '/lib';
+
+		$i = 0;
+		$len = count($tmp);
+
+		foreach ($tmp as $p) {
+			if ($i == $len - 1) {
+				$p = $p . '.php';
+			}
+			$look_path .= '/' . $p;
+			$i++;
+		}
+
+		if (file_exists($look_path)) {
+			$lib_classes[] = $look_path . PHP_EOL;
+		}
+
+	}
+
+}
+
+$lib_classes = array_unique($lib_classes);
+$lib_classes = array_values($lib_classes);
+
+// echo 'lib_classes' . PHP_EOL;
+// echo '<pre>';
+// print_r($lib_classes);
+// echo '</pre>';
+
+foreach ($lib_classes as $f) {
+	$extension_files[] = $f;
+}
+
+
+foreach ($xml_updates['translate'] as $layout_node => $csv_files) {
+
+	foreach ($csv_files as $csv_file) {
+
+		$translate_csv_files[$layout_node][] = $fp;
+
+		foreach ($fp as $f) {
+			$f = $magento_dir . '/' . $f;
+			if (file_exists($f)) {
+				// if the file exists lets add it to our array
+				$extension_files[] = $f;
 			}
 		}
 

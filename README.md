@@ -7,4 +7,7 @@ php meff.php Extension_Name MagentoDir
 ```
 
 ####Caveats:
-There is lots to refactor and places where I'm not doing stuff correctly. Submit a PR if you want to help.
+There is lots to refactor and places where I'm not doing stuff correctly. Submit a PR if you want to help. There are currently some files I'm not able to pick up on (i'm hoping to in further releases):
+ * /lib (somewhat supported needs refactoring)
+ * not picking up on <block template="name.phtml"> files right now
+ * Any other non-standard files that the extension adds.
