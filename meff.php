@@ -528,7 +528,19 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 }
 
 // clean up the base to package roots
+
+// add stock layout roots
+$layout_roots[] = '/base/default/';
+$layout_roots[] = '/default/default/';
+$layout_roots[] = '/enterprise/default/';
+$layout_roots[] = '/pro/default/';
+$layout_roots[] = '/rwd/default/';
+
 $layout_roots = array_unique($layout_roots);
+
+// echo '<pre>';
+// print_r($layout_roots);
+// echo '</pre>';
 
 
 $extension_files = array();
