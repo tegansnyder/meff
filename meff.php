@@ -948,23 +948,21 @@ foreach ($extension_files as $f) {
 
 			} else {
 
+				// does the path contain / indicating we have
+				// a folder path
 				if (strpos($tmp, '/') !== false) {
 
 					$pos = strrpos($tmp, '/');
-					if ($pos !== false) {
-						$tmp = substr($tmp, 0, $pos);
+					$tmp = substr($tmp, 0, $pos);
 
-						if (isset($base_folders[$root]['skin'])) {
+					if (isset($base_folders[$root]['skin'])) {
 
-							if (!in_array($tmp, $base_folders[$root]['skin'])) {
-								$base_folders[$root]['skin'][] = $tmp;
-							}
-
-						} else {
+						if (!in_array($tmp, $base_folders[$root]['skin'])) {
 							$base_folders[$root]['skin'][] = $tmp;
 						}
 
-						
+					} else {
+						$base_folders[$root]['skin'][] = $tmp;
 					}
 
 				}
