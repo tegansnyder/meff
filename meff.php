@@ -517,7 +517,24 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 				}
 
 
-				// @todo: also need a way to get <block template="somefile.phtml"
+				// loop through blocks
+				$result = $xml->xpath('//block[not(node())]');
+
+				foreach ($result as $node) {
+
+					$attributes = $node->attributes();
+
+					if (isset($attributes->type)) {
+
+						if (isset($attributes->template)) {
+
+							$design_files[$design_folder]['blocks'][(string)$attributes->type][] = (string)$attributes->template;
+
+						}
+
+					}
+
+				}
 
 			}
 
@@ -526,6 +543,11 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 	}
 
 }
+
+// echo 'design_files: ' . PHP_EOL;
+// echo '<pre>';
+// print_r($design_files);
+// echo '</pre>';
 
 // clean up the base to package roots
 
@@ -568,6 +590,7 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 
 }
 
+// @todo - this can be removed as extension_file_incs will replace it
 // loop through the files included via setTemplate method
 foreach ($setTemplate_phtml_files as $file_location => $file_paths) {
 
@@ -593,6 +616,78 @@ foreach ($setTemplate_phtml_files as $file_location => $file_paths) {
 		
 	}
 }
+
+// extension_file_incs files found in the php files of the extension base dir
+// loop through the files included via setTemplate method
+foreach ($setTemplate_phtml_files as $file_location => $file_paths) {
+
+	foreach ($file_paths as $f) {
+
+		$f = str_replace("'", '', $f);
+
+		foreach ($layout_roots as $root_folder) {
+
+			// we are looking in both design packages
+			// if we find a file exists we add it to array
+			$fp = $magento_dir . '/app/design/adminhtml' . $root_folder . 'template/' . $f;
+			if (file_exists($fp)) {
+				$extension_files[] = $fp;
+			}
+
+			$fp = $magento_dir . '/app/design/frontend' . $root_folder . 'template/' . $f;
+			if (file_exists($fp)) {
+				$extension_files[] = $fp;
+			}
+
+		}
+		
+	}
+}
+
+
+if (isset($design_files['frontend']['blocks'])) {
+
+	foreach ($design_files['frontend']['blocks'] as $block_type => $blocks) {
+
+		foreach ($blocks as $f) {
+
+			foreach ($layout_roots as $root_folder) {
+
+				$fp = $magento_dir . '/app/design/frontend' . $root_folder . 'template/' . $f;
+				if (file_exists($fp)) {
+					$extension_files[] = $fp;
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+if (isset($design_files['adminhtml']['blocks'])) {
+
+	foreach ($design_files['adminhtml']['blocks'] as $block_type => $blocks) {
+
+		foreach ($blocks as $f) {
+
+			foreach ($layout_roots as $root_folder) {
+
+				$fp = $magento_dir . '/app/design/adminhtml' . $root_folder . 'template/' . $f;
+				if (file_exists($fp)) {
+					$extension_files[] = $fp;
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+
 
 /* 
 skin_css: relative to skin directory of your theme.
@@ -880,22 +975,129 @@ foreach ($lib_classes as $f) {
 }
 
 
-foreach ($xml_updates['translate'] as $layout_node => $csv_files) {
 
-	foreach ($csv_files as $csv_file) {
 
-		$translate_csv_files[$layout_node][] = $fp;
+// lets find any mention of .phtml in a extension file
+$extension_file_incs = array();
+foreach ($extension_php_files as $f) {
 
-		foreach ($fp as $f) {
-			$f = $magento_dir . '/' . $f;
-			if (file_exists($f)) {
-				// if the file exists lets add it to our array
-				$extension_files[] = $f;
+	$handle = fopen($f, 'r');
+	if ($handle) {
+
+	    while (($line = fgets($handle)) !== false) {
+
+	    	$ext = '.phtml';
+	       	if (strpos($line, $ext) !== FALSE) {
+	       		// find references to phtml files
+				$tmp = explode($ext, $line);
+				foreach ($tmp as $t) {
+					$t = str_replace('"', "'", $t);
+					$t = str_replace(';', "", $t);
+					$t = str_replace(')', "", $t);
+					$t = str_replace('(', "", $t);
+					$t = array_pop(explode("'", $t)) . $ext;
+					$t = trim($t);
+					if (empty($t)) {
+						continue;
+					}
+					// if its not blank
+					if ($t != $ext) {
+						$extension_file_incs[$ext][] = $t;
+					}
+				}
+	       	}
+
+	    	$ext = '.css';
+	       	if (strpos($line, $ext) !== FALSE) {
+	       		// find references to phtml files
+				$tmp = explode($ext, $line);
+				foreach ($tmp as $t) {
+					$t = str_replace('"', "'", $t);
+					$t = str_replace(';', "", $t);
+					$t = str_replace(')', "", $t);
+					$t = str_replace('(', "", $t);
+					$t = array_pop(explode("'", $t)) . $ext;
+					$t = trim($t);
+					if (empty($t)) {
+						continue;
+					}
+					// if its not blank
+					if ($t != $ext) {
+						$extension_file_incs[$ext][] = $t;
+					}
+				}
+	       	}
+
+	       	$ext = '.js';
+	       	if (strpos($line, $ext) !== FALSE) {
+	       		// find references to phtml files
+				$tmp = explode($ext, $line);
+				foreach ($tmp as $t) {
+					$t = str_replace('"', "'", $t);
+					$t = str_replace(';', "", $t);
+					$t = str_replace(')', "", $t);
+					$t = str_replace('(', "", $t);
+					$t = array_pop(explode("'", $t)) . $ext;
+					$t = trim($t);
+					if (empty($t)) {
+						continue;
+					}
+					if ($t != $ext) {
+						$extension_file_incs[$ext][] = $t;
+					}
+				}
+	       	}
+
+	       	$ext = '.php';
+	       	if (strpos($line, $ext) !== FALSE) {
+	       		// find references to phtml files
+				$tmp = explode($ext, $line);
+				foreach ($tmp as $t) {
+					$t = str_replace('"', "'", $t);
+					$t = str_replace(';', "", $t);
+					$t = str_replace(')', "", $t);
+					$t = str_replace('(', "", $t);
+					$t = array_pop(explode("'", $t)) . $ext;
+					$t = trim($t);
+					if (empty($t)) {
+						continue;
+					}
+					if ($t != $ext) {
+						$extension_file_incs[$ext][] = $t;
+					}
+				}
+	       	}
+
+	       	// @todo - maybe refactor this approach and
+	       	// detect images to
+
+	    }
+	}
+
+}
+
+//  files found in the php files of the extension base dir
+foreach ($extension_file_incs as $file_type => $fp) {
+
+	foreach ($fp as $f) {
+
+		foreach ($layout_roots as $root_folder) {
+
+			$fp = $magento_dir . '/app/design/adminhtml' . $root_folder . 'template/' . $f;
+
+			if (file_exists($fp)) {
+				$extension_files[] = $fp;
 			}
+
+			$fp = $magento_dir . '/app/design/frontend' . $root_folder . 'template/' . $f;
+			if (file_exists($fp)) {
+				$extension_files[] = $fp;
+			}
+
 		}
 
 	}
-
+	
 }
 
 /*
@@ -1108,6 +1310,8 @@ foreach ($base_folders as $package => $folders) {
 
 // remove dups
 $base_files = array_unique($base_files);
+
+$extension_files = array_unique($extension_files);
 
 /*
 loop through all the extension files and compare them against
