@@ -499,10 +499,6 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 
 				$result = $xml->xpath('//action[@method="addItem"]');
 
-				// @todo: addItem can use a helper method function to find
-				// path to file:
-				// i.e.: <name helper="tegdesign_emailcollector/data/getCSSFilename" />
-
 				foreach ($result as $node) {
 
 					if (isset($node->type)) {
@@ -512,6 +508,25 @@ foreach ($layout_xml_files as $design_folder => $xml_files) {
 						if (isset($node->script)) {
 							$design_files[$design_folder][(string)$node->type][] = (string)$node->script;
 						}
+					}
+
+				}
+
+
+				// @todo: revist thsis as addItem can use a helper method function to find
+				// path to file:
+				// i.e.: <name helper="tegdesign_emailcollector/data/getCSSFilename" />
+
+				$result = $xml->xpath('//action[@method="addItem"]//name[@helper]');
+
+				foreach ($result as $node) {
+
+					$attributes = $node->attributes();
+
+					if (isset($attributes->helper)) {
+
+						$design_files[$design_folder]['helper'][] = (string)$attributes->helper;
+
 					}
 
 				}
@@ -687,6 +702,41 @@ if (isset($design_files['adminhtml']['blocks'])) {
 
 }
 
+if (isset($design_files['frontend']['helper'])) {
+
+	foreach ($design_files['frontend']['helper'] as $h) {
+
+		//@todo
+		//this is where we would need to load in Magento
+		// and actually call the helper method
+
+		/*
+		require_once($magento_dir . '/app/Mage.php');
+		umask(0);
+		Mage::app();
+
+		$tmp = explode('/', $h);
+		$helper_name = $tmp[0];
+		$helper_method = $tmp[2];
+
+		$tmp = Mage::helper($helper_name)->$helper_method;
+		*/
+
+	}
+
+}
+
+if (isset($design_files['adminhtml']['helper'])) {
+
+	foreach ($design_files['frontend']['helper'] as $h) {
+
+		//@todo
+		//this is where we would need to load in Magento
+		// and actually call the helper method
+
+	}
+
+}
 
 
 /* 
@@ -877,6 +927,15 @@ $extension_php_files = iterateFileSystem(
 	'/^.+\.php$/i'
 );
 
+// get a array of all the PHP files involved in the extension
+$extension_xml_files = array();
+$extension_xml_files = iterateFileSystem(
+	array(
+		'base_dir' => $extension_base_dir
+	),
+	'/^.+\.xml$/i'
+);
+
 // echo 'extension_php_files: ' . PHP_EOL;
 // echo '<pre>';
 // print_r($extension_php_files);
@@ -976,105 +1035,126 @@ foreach ($lib_classes as $f) {
 
 
 
+function parseFilenameFromLine($ext, $line) {
 
-// lets find any mention of .phtml in a extension file
+	$data = array();
+
+   	if (strpos($line, $ext) !== FALSE) {
+   		// find references to phtml files
+		$tmp = explode($ext, $line);
+		foreach ($tmp as $t) {
+			$t = str_replace('"', "'", $t);
+			$t = str_replace(';', "", $t);
+			$t = str_replace(')', "", $t);
+			$t = str_replace('(', "", $t);
+			$t = array_pop(explode("'", $t)) . $ext;
+			$t = trim($t);
+			if (empty($t)) {
+				continue;
+			}
+			// if its not blank
+			if ($t != $ext) {
+				$data[] = $t;
+			}
+		}
+   	}
+
+   	return $data;
+
+}
+
+function initFileLineSearcher($exts, $line) {
+	
+	$data = array();
+
+	foreach ($exts as $e) {
+
+		$tmp = parseFilenameFromLine($e, $line);
+
+    	if (isset($tmp) && !empty($tmp)) {
+    		foreach ($tmp as $d) {
+    			$data['.phtml'][] = $d;
+    		}
+    	}
+
+	}
+
+	return $data;
+
+}
+
+
+// lets find any mention of filename in an extension
 $extension_file_incs = array();
 foreach ($extension_php_files as $f) {
 
 	$handle = fopen($f, 'r');
+
 	if ($handle) {
 
 	    while (($line = fgets($handle)) !== false) {
 
-	    	$ext = '.phtml';
-	       	if (strpos($line, $ext) !== FALSE) {
-	       		// find references to phtml files
-				$tmp = explode($ext, $line);
-				foreach ($tmp as $t) {
-					$t = str_replace('"', "'", $t);
-					$t = str_replace(';', "", $t);
-					$t = str_replace(')', "", $t);
-					$t = str_replace('(', "", $t);
-					$t = array_pop(explode("'", $t)) . $ext;
-					$t = trim($t);
-					if (empty($t)) {
-						continue;
-					}
-					// if its not blank
-					if ($t != $ext) {
-						$extension_file_incs[$ext][] = $t;
-					}
-				}
-	       	}
+	    	$data = initFileLineSearcher(
+	    		array('.phtml', 
+	    			  '.js',
+	    			  '.css',
+	    			  '.php'
+	    		), $line
+	    	);
 
-	    	$ext = '.css';
-	       	if (strpos($line, $ext) !== FALSE) {
-	       		// find references to phtml files
-				$tmp = explode($ext, $line);
-				foreach ($tmp as $t) {
-					$t = str_replace('"', "'", $t);
-					$t = str_replace(';', "", $t);
-					$t = str_replace(')', "", $t);
-					$t = str_replace('(', "", $t);
-					$t = array_pop(explode("'", $t)) . $ext;
-					$t = trim($t);
-					if (empty($t)) {
-						continue;
-					}
-					// if its not blank
-					if ($t != $ext) {
-						$extension_file_incs[$ext][] = $t;
-					}
-				}
-	       	}
-
-	       	$ext = '.js';
-	       	if (strpos($line, $ext) !== FALSE) {
-	       		// find references to phtml files
-				$tmp = explode($ext, $line);
-				foreach ($tmp as $t) {
-					$t = str_replace('"', "'", $t);
-					$t = str_replace(';', "", $t);
-					$t = str_replace(')', "", $t);
-					$t = str_replace('(', "", $t);
-					$t = array_pop(explode("'", $t)) . $ext;
-					$t = trim($t);
-					if (empty($t)) {
-						continue;
-					}
-					if ($t != $ext) {
-						$extension_file_incs[$ext][] = $t;
-					}
-				}
-	       	}
-
-	       	$ext = '.php';
-	       	if (strpos($line, $ext) !== FALSE) {
-	       		// find references to phtml files
-				$tmp = explode($ext, $line);
-				foreach ($tmp as $t) {
-					$t = str_replace('"', "'", $t);
-					$t = str_replace(';', "", $t);
-					$t = str_replace(')', "", $t);
-					$t = str_replace('(', "", $t);
-					$t = array_pop(explode("'", $t)) . $ext;
-					$t = trim($t);
-					if (empty($t)) {
-						continue;
-					}
-					if ($t != $ext) {
-						$extension_file_incs[$ext][] = $t;
-					}
-				}
-	       	}
-
-	       	// @todo - maybe refactor this approach and
-	       	// detect images to
+	    	if (isset($data) && !empty($data)) {
+	    		$extension_file_incs[] = $data;
+	    	}
 
 	    }
 	}
 
 }
+
+foreach ($extension_xml_files as $f) {
+
+	$handle = fopen($f, 'r');
+
+	if ($handle) {
+
+	    while (($line = fgets($handle)) !== false) {
+
+	    	$data = initFileLineSearcher(
+	    		array('.phtml', 
+	    			  '.js',
+	    			  '.css',
+	    			  '.php'
+	    		), $line
+	    	);
+
+	    	if (isset($data) && !empty($data)) {
+	    		$extension_file_incs[] = $data;
+	    	}
+
+	    }
+	}
+
+}
+
+function normalizeFileIncs($file_incs) {
+
+	$data = array();
+
+	foreach ($file_incs as $fp) {
+		foreach ($fp as $file_type => $f) {
+			foreach ($f as $d) {
+				$data[$file_type][] = $d;
+			}
+		}
+	}
+
+	return $data;
+
+}
+
+$extension_file_incs = normalizeFileIncs($extension_file_incs);
+
+
 
 //  files found in the php files of the extension base dir
 foreach ($extension_file_incs as $file_type => $fp) {
@@ -1307,6 +1387,39 @@ foreach ($base_folders as $package => $folders) {
 	}
 
 }
+
+
+foreach ($extension_file_incs as $file_type => $fp) {
+
+	foreach ($fp as $f) {
+
+		foreach ($base_folders as $package => $folders) {
+
+			foreach ($base_skin_folders as $base_s) {
+
+				if (stripos(strrev($f), 'lmthp.') === 0) {
+					// skip phtml files
+					continue;
+				}
+
+				$fp = $magento_dir . '/skin/frontend' . $package . $base_s . $f;
+
+				if (file_exists($fp)) {
+					$extension_files[] = $fp;
+				}
+
+				$fp = $magento_dir . '/skin/adminhtml' . $package . $base_s . $f;
+				if (file_exists($fp)) {
+					$extension_files[] = $fp;
+				}
+
+			}
+
+		}
+	}
+}
+
+
 
 // remove dups
 $base_files = array_unique($base_files);
