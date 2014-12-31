@@ -36,6 +36,8 @@ I haven't tested this on all possible senarios. I appreciate the communities sup
  * I currently I'm not scanning phtml files for file mentions. I realize people often include paths to files in phtml code and will fix this very soon in the next push to this branch.
  * The code is a bit messy and documentation is limited in some places. I appreciate PR's for refactoring.
 
+--------------
+
 #### Contribution
 
 To contribute:
