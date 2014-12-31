@@ -1,74 +1,69 @@
 <?php
-//http://www.if-not-true-then-false.com/2010/php-class-for-coloring-php-command-line-cli-scripts-output-php-output-colorizing-using-bash-shell-colors/
+/**
+ * CliColors.php
+ *
+ * @author    Tegan Snyder <tsnyder@tegdesign.com>
+ * @license   MIT
+ */
 
 class CliColors {
 
-	private $foreground_colors = array();
-	private $background_colors = array();
+	private $f_colors = array();
+	private $b_colors = array();
+
+	// set this to false to not use colors
+	const USE_COLOR = true;
 
 	public function __construct() {
-		// Set up shell colors
-		$this->foreground_colors['black'] = '0;30';
-		$this->foreground_colors['dark_gray'] = '1;30';
-		$this->foreground_colors['blue'] = '0;34';
-		$this->foreground_colors['light_blue'] = '1;34';
-		$this->foreground_colors['green'] = '0;32';
-		$this->foreground_colors['light_green'] = '1;32';
-		$this->foreground_colors['cyan'] = '0;36';
-		$this->foreground_colors['light_cyan'] = '1;36';
-		$this->foreground_colors['red'] = '0;31';
-		$this->foreground_colors['light_red'] = '1;31';
-		$this->foreground_colors['purple'] = '0;35';
-		$this->foreground_colors['light_purple'] = '1;35';
-		$this->foreground_colors['brown'] = '0;33';
-		$this->foreground_colors['yellow'] = '1;33';
-		$this->foreground_colors['light_gray'] = '0;37';
-		$this->foreground_colors['white'] = '1;37';
 
-		$this->background_colors['black'] = '40';
-		$this->background_colors['red'] = '41';
-		$this->background_colors['green'] = '42';
-		$this->background_colors['yellow'] = '43';
-		$this->background_colors['blue'] = '44';
-		$this->background_colors['magenta'] = '45';
-		$this->background_colors['cyan'] = '46';
-		$this->background_colors['light_gray'] = '47';
+		// Credit to JR: http://goo.gl/BE373
+
+		$this->f_colors['light_gray'] = '0;37';
+		$this->f_colors['light_red'] = '1;31';
+		$this->f_colors['red'] = '0;31';
+		$this->f_colors['cyan'] = '0;36';
+		$this->f_colors['light_purple'] = '1;35';
+		$this->f_colors['white'] = '1;37';
+
+		$this->b_colors['black'] = '40';
+
 	}
 
-	// Returns colored string
-	public function out($string, $foreground_color = null, $background_color = null) {
-		$colored_string = "";
+	/**
+	 * Make text written to the console look pretty
+	 *
+	 * @return string
+	 */
+	public function formatTxt($string, $f_color = null) {
 
-		// Check if given foreground color found
-		if (isset($this->foreground_colors[$foreground_color])) {
-			$colored_string .= "\033[" . $this->foreground_colors[$foreground_color] . "m";
-		}
-		// Check if given background color found
-		if (isset($this->background_colors[$background_color])) {
-			$colored_string .= "\033[" . $this->background_colors[$background_color] . "m";
+		if (self::USE_COLOR) {
+
+			$color_string = '';
+
+			if (isset($this->f_colors[$f_color])) {
+				$color_string .= "\033[" . $this->f_colors[$f_color] . "m";
+			}
+
+			// add string and end coloring
+			$color_string .=  $string . "\033[0m";
+
+			$string = $color_string;
+
 		}
 
-		// Add string and end coloring
-		$colored_string .=  $string . "\033[0m";
-
-		return $colored_string;
+		return $string;
 	}
 
-	// Returns all foreground color names
-	public function getForegroundColors() {
-		return array_keys($this->foreground_colors);
-	}
-
-	// Returns all background color names
-	public function getBackgroundColors() {
-		return array_keys($this->background_colors);
-	}
-
+	/**
+	 * Write text to console
+	 *
+	 * @return string
+	 */
 	public function write($msg_type = null, $msg = null, $extra_msg = null) {
 
 		$str = '';
 
-		if ($msg_type !== null) {
+		if (isset($msg_type)) {
 
 			$msg_type_color = 'light_purple';
 			$msg_color = 'cyan';
@@ -77,14 +72,14 @@ class CliColors {
 				$msg_color = 'light_red';
 			}
 
-			$str = $this->out($msg_type . ': ', $msg_type_color, 'black');
+			$str = $this->formatTxt($msg_type . ': ', $msg_type_color);
 
-			if ($msg !== null) {
-				$str .= $this->out($msg, $msg_color, 'black');
+			if (isset($msg)) {
+				$str .= $this->formatTxt($msg, $msg_color);
 			}
 
-			if ($extra_msg !== null) {
-				$str .= $this->out(' - ' . $extra_msg, 'light_gray', 'black');
+			if (isset($extra_msg)) {
+				$str .= $this->formatTxt(' - ' . $extra_msg, 'light_gray');
 			}
 
 		}

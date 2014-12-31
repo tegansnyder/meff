@@ -674,8 +674,6 @@ class XmlParser extends ExtensionXml
 
 			    while (($line = fgets($handle)) !== false) {
 
-			    	echo $line . PHP_EOL;
-
 					$tmp = $this->get_string_between($line, 'new ', ');');
 
 			       	// do we have something and is the first character 
