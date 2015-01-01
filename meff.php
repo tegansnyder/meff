@@ -7,7 +7,7 @@
  */
 
 function __autoload($class_name) {
-	$class_path = 'inc/' . $class_name . '.php';
+	$class_path = 'shell/meff/' . $class_name . '.php';
     include $class_path;
 }
 
@@ -39,8 +39,6 @@ class Meff
 	// @SimpleXMLElement app/code_pool/company_name/extension_name
 	protected static $extension_config_xml;
 
-	public $cli_txt;
-
 	/**
 	 * Instantiate all variables, class instances, and do the work
 	 *
@@ -51,8 +49,9 @@ class Meff
 
 		self::$params = $argv;
 
+		$cli_txt = new CliColors();
 		$cli = new Cli(self::$params);
-		$this->cli_txt = new CliColors();
+		
 		$extension_xml = new ExtensionXml();
 		$xml_parser = new XmlParser();
 		$file_iterator = new FileIterator();
@@ -108,7 +107,7 @@ class Meff
 
 		// now lets output what we think are the files involved in this extension
 
-		$this->cli_txt->write('FILES IDENTIFIED FOR', self::$extension_full_name);
+		$cli_txt->write('FILES IDENTIFIED FOR', self::$extension_full_name);
 
 		echo self::$extension_base_dir . PHP_EOL;
 		echo self::$app_etc_module_path . PHP_EOL;
@@ -132,9 +131,6 @@ class Meff
 		foreach ($lib_mentions as $p) {
 			echo $p . PHP_EOL;
 		}
-
-		// @todo - phtml mentions
-
 
 	}
 
@@ -161,8 +157,9 @@ class Meff
 	*/
 	public function displayError($error_string) 
 	{
+		$cli_txt = new CliColors();
 		if (self::DISPLAY_CLI_ERRORS) {
-			die($this->cli_txt->write('ERROR', $error_string));
+			die($cli_txt->write('ERROR', $error_string));
 		}
 	}
 
@@ -177,6 +174,8 @@ class Meff
 
 		if (self::DEBUG_MODE) {
 
+			$cli_txt = new CliColors();
+
 			$debug = false;
 			if (self::DEBUG_LEVEL == 0) {
 				$debug = true;
@@ -187,9 +186,9 @@ class Meff
 			if ($debug) {
 
 				if ($debug_type != null) {
-					$this->cli_txt->write('DEBUG', $debug_type . ' - ' . $info, $extra_msg);
+					$cli_txt->write('DEBUG', $debug_type . ' - ' . $info, $extra_msg);
 				} else {
-					$this->cli_txt->write('DEBUG', $info, $extra_msg);	
+					$cli_txt->write('DEBUG', $info, $extra_msg);	
 				}
 
 			}

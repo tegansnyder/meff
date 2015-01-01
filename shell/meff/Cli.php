@@ -24,6 +24,7 @@ class Cli extends Meff
 		$this->isMagentoDirectoryProvided();
 
 		$this->getMagentoDir();
+		$this->isValidMagentoDirectory();
 		$this->getExtensionFullName();
 		$this->getCompanyName();
 		$this->getExtensionName();
@@ -43,13 +44,24 @@ class Cli extends Meff
 	}
 
 	/**
+	 * Check to ensure a valid Magento directory
+	 */
+	private function isValidMagentoDirectory() 
+	{
+		if (!file_exists(parent::$magento_dir . '/app/Mage.php')) {
+			$this->displayError('Not a valid Magento directory.');
+		}
+	}
+
+	/**
 	 * Check to ensure a path to a Magento directory is sent via command line
 	 */
 	private function isMagentoDirectoryProvided() 
 	{
 
 		if (!isset($this->params[2])) {
-			$this->displayError('Magento directory path not given.');
+			// try to use the current working directory if a dir is not passed
+			$this->params[2] = getcwd();
 		}
 
 	}
@@ -95,7 +107,13 @@ class Cli extends Meff
 	public function getMagentoDir() 
 	{
 
-		$magento_dir = rtrim($this->params[2], '/');
+		if ($this->params[2] == '.') {
+			$magento_dir = getcwd();
+		} else {
+			$magento_dir = $this->params[2];
+		}
+		// remove trailing slash
+		$magento_dir = rtrim($magento_dir, '/');
 
 		parent::$magento_dir = $magento_dir;
 		return $magento_dir;

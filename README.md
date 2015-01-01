@@ -4,16 +4,27 @@ The purpose of this utility is to list all the files responsible for a Magento e
 Simple clone this repo and run the meff.php file via the command line passing it a extension name and full path to your Magento root directory.
 ```bash
 php meff.php Extension_Name MagentoDir
+
+# or if you are in the current working directory
+php meff.php Extension_Name
+```
+You can also install this via modman:
+```bash
+modman clone https://github.com/tegansnyder/meff.git
 ```
 
 ##### Example:
+[https://github.com/SchumacherFM/Magento-OpCache/blob/master/modman]Comparision >
 ```bash
-php meff.php ProxiBlue_NewRelic /var/www/magento
-/var/www/magento/app/design/adminhtml/default/default/template/dashboard
-/var/www/magento/app/design/adminhtml/default/default/template/newrelic
-/var/www/magento/app/etc/modules/ProxiBlue_NewRelic.xml
-/var/www/magento/app/code/community/ProxiBlue/NewRelic
-/var/www/magento/app/design/adminhtml/default/default/layout/newrelic.xml
+➜ php meff.php SchumacherFM_OpCachePanel /var/www/site
+FILES IDENTIFIED FOR: SchumacherFM_OpCachePanel
+/var/www/site/app/code/community/SchumacherFM/OpCachePanel
+/var/www/site/app/etc/modules/SchumacherFM_OpCachePanel.xml
+/var/www/site/app/design/adminhtml/default/default/layout/opcachepanel.xml
+/var/www/site/app/locale/de_DE/SchumacherFM_OpCachePanel.csv
+/var/www/site/app/locale/en_US/SchumacherFM_OpCachePanel.csv
+/var/www/site/app/design/adminhtml/default/default/template/opcachepanel/unloaded.phtml
+/var/www/site/app/design/adminhtml/default/default/template/opcachepanel/graph.phtml
 ```
 
 #### Debug Mode:
@@ -33,7 +44,6 @@ This extension has some built in debug modes you can enable to see what it is do
 I haven't tested this on all possible senarios. I appreciate the communities support in testing it with extensions. Magento allows you to construct extensions that can pull files in from a wide variety of sources. I attempt parse the source code looking for mentions of this files and then attempt to determine their existances passed on a few testable assumptions. I'm still working on a few things:
  * Magento allows you to define a helper function to assist in returning a filename using the addItem method. Since this extension currently doesn't instantiate the Magento framework I haven't added this feature.
  * I attempt to pickup any files the extension places in the /lib folder by parsing the source of the php files in the extension and looking for new class declarations. In my tests it is working, but if an issue is found please submit a PR.
- * I currently I'm not scanning phtml files for file mentions. I realize people often include paths to files in phtml code and will fix this very soon in the next push to this branch.
  * The code is a bit messy and documentation is limited in some places. I appreciate PR's for refactoring.
 
 --------------
