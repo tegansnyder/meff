@@ -1244,13 +1244,6 @@ class XmlParser extends ExtensionXml
 			*/
 			case 'file_mentions':
 
-// DEBUG: file_mentions_php - Array
-// (
-//     [0] => dashboard/newrelic.phtml
-//     [1] => newrelic.js
-//     [2] => newrelic.js
-// )
-
 				$search_paths = array();
 				$search_path_templates = array(
 					'js',
