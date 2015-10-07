@@ -14,7 +14,7 @@ modman clone https://github.com/tegansnyder/meff.git
 ```
 
 ##### Example:
-[Comparision >](https://github.com/SchumacherFM/Magento-OpCache/blob/master/modman)
+[Comparison >](https://github.com/SchumacherFM/Magento-OpCache/blob/master/modman)
 ```bash
 ➜ php meff.php SchumacherFM_OpCachePanel /var/www/site
 FILES IDENTIFIED FOR: SchumacherFM_OpCachePanel
